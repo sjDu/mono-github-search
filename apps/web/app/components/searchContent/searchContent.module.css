@@ -1,0 +1,30 @@
+.content {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  background: #fff;
+}
+
+.contentBlock {
+  width: 760px;
+
+  @media (max-width: 760px) {
+    width: 100%;
+  }
+}
+
+.searchBlock {
+  padding: 10px;
+  position: fixed;
+  top: 60px;
+  width: 100%;
+  max-width: 764px;
+  margin-left: -2px;
+  background: #fff;
+  box-sizing: border-box;
+
+  @media (max-width: 760px) {
+    margin-left: 0;
+  }
+}
