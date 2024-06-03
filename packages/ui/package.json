@@ -5,7 +5,9 @@
   "exports": {
     "./button": "./src/button.tsx",
     "./input": "./src/input.tsx",
-    "./header": "./src/header/header.tsx"
+    "./header": "./src/header/header.tsx",
+    "./avatar": "./src/avatar/avatar.tsx",
+    "./loader": "./src/loader/loader.tsx"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
