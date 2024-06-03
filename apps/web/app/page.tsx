@@ -1,17 +1,9 @@
-"use client";
 import styles from "./page.module.css";
-import { Button } from "@repo/ui/button";
-import { login } from "@repo/github-service";
+import LoginForm from './components/loginForm/loginForm';
 
 export default function Page(): JSX.Element {
+
   return (
-    <main className={styles.main}>
-      <Button className={styles.button} onClick={async () => {
-        const response = await login('token');
-        console.log('login result', response);
-      }}>
-        Login
-      </Button>
-    </main>
+      <LoginForm className={styles.loginForm} />
   );
 }

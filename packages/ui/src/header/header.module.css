@@ -1,0 +1,16 @@
+.block {
+  width: 100%;
+  height: 60px;
+  padding: 10px;
+  background: #2c2c2c;
+  /* background: red; */
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  position: fixed;
+}
+
+.title {
+  color: white;
+  font-size: 2em;
+}

@@ -9,11 +9,12 @@
     "lint": "eslint . --max-warnings 0"
   },
   "dependencies": {
+    "@repo/github-service": "*",
     "@repo/ui": "*",
+    "jotai": "^2.8.2",
     "next": "^14.1.1",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "@repo/github-service": "*"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^14.1.1",

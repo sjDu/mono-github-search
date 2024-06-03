@@ -6,5 +6,5 @@ export async function login(token: string) {
       email: 'tester.tony.stark@starkindustry.com'
     },
     status: 'success',
-  });
+  } as const);
 }
