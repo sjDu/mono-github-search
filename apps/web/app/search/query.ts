@@ -57,6 +57,7 @@ function useSearchList() {
   return [
     {
       items,
+      total: data?.pages?.[0]?.total || 0,
       isFetching,
       isError,
       resumeTime: Number(errorObj?.resumeTime) || 0,

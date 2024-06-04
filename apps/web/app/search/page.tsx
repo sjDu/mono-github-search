@@ -27,7 +27,6 @@ function useInfiniteScroll(isFetching: boolean, nextPage: () => void, isHide: bo
     };
   }, [nextPage, isFetching]);
 
-  // hide footer when no items
   const footer = <footer ref={footerRef} className={styles.footer + ` ${isHide ? styles.hide : ''}`} />
   return [
     footer,
@@ -69,11 +68,12 @@ export default function SearchPage(): JSX.Element {
   }
 
   const [state, search, nextPage] = useSearchList();
-  const { items: list, isFetching, isError, resumeTime, isRateLimit } = state;
+  const { items: list, total, isFetching, isError, resumeTime, isRateLimit } = state;
 
   const [error] = useCountdownError(resumeTime, isRateLimit, isError);
 
-  const isHide = list.length === 0;
+  // hide footer when no items or all items fetched
+  const isHide = list.length === 0 || list.length === total;
   const [footer] = useInfiniteScroll(isFetching, nextPage, isHide);
 
   return (
