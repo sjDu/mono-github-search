@@ -14,7 +14,7 @@ type SearchBoxProps = {
   isDisabled: boolean;
 };
 
-function useAutoSearch(search: (query: string) => Promise<void>, searchWaitSec: number) {
+function useAutoSearch(search: handleSearch, searchWaitSec: number) {
   const [query, setQuery] = useState("");
   const [isWait, setIsWait] = useState(false);
 

@@ -1,66 +1,127 @@
 "use client";
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { redirect } from 'next/navigation'
 import { useAtomValue } from 'jotai'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { searchRepo } from "@repo/github-service";
 import { loginAtom } from "../atoms/atoms";
 import SearchContent from "../components/searchContent/searchContent";
 import styles from './page.module.css'
 
-const data = [
-  {
-    id: 76954504,
-    owner: {
-      avatar_url: "https://avatars2.githubusercontent.com/u/5383506?v=4",
-      html_url: "https://github.com/chvin"
-    },
-    html_url: "https://github.com/chvin/react-tetris",
-    full_name: "chvin/react-tetris",
-    description: "Use React, Redux, Immutable to code Tetris. 🎮"
-  },
-  {
-    id: 94079558,
-    owner: {
-      avatar_url: "https://avatars1.githubusercontent.com/u/12221718?v=4",
-      html_url: "https://github.com/Binaryify"
-    },
-    html_url: "https://github.com/Binaryify/vue-tetris",
-    full_name: "Binaryify/vue-tetris",
-    description: "Use Vue, Vuex to code Tetris.使用 Vue, Vuex 做俄罗斯方块 "
-  },
-  {
-    id: 19886948,
-    owner: {
-      avatar_url: "https://avatars0.githubusercontent.com/u/8196313?v=4",
-      html_url: "https://github.com/Hextris"
-    },
-    html_url: "https://github.com/Hextris/hextris",
-    full_name: "Hextris/hextris",
-    description: "Fast paced HTML5 puzzle game inspired by Tetris!"
-  },
-  {
-    id: 95875527,
-    owner: {
-      avatar_url: "https://avatars2.githubusercontent.com/u/10406525?v=4",
-      html_url: "https://github.com/exyte"
-    },
-    html_url: "https://github.com/exyte/ARTetris",
-    full_name: "exyte/ARTetris",
-    description: "Augmented Reality Tetris made with ARKit and SceneKit"
-  },
-  {
-    id: 20853547,
-    owner: {
-      avatar_url: "https://avatars0.githubusercontent.com/u/250750?v=4",
-      html_url: "https://github.com/skidding"
-    },
-    html_url: "https://github.com/skidding/flatris",
-    full_name: "skidding/flatris",
-    description: "Fast-paced two-player web game"
-  },
-];
+function useInfiniteScroll(isFetching: boolean, nextPage: () => void, isHide: boolean) {
+  const observerRef = useRef<IntersectionObserver>();
+  const footerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (isFetching) return;
 
-// duplicate mock data
-while (data.length < 100) {
-  data.push(...data.map((it) => ({ ...it, id: it.id + data.length })));
+    observerRef.current = new IntersectionObserver(async function (entries) {
+      if ((entries?.[0]?.intersectionRatio ?? 0) <= 0) {
+        return;
+      }
+      nextPage();
+    });
+
+    observerRef.current.observe(footerRef.current as Element);
+
+    return () => {
+      observerRef.current?.disconnect();
+    };
+  }, [nextPage, isFetching]);
+
+  const footer = <footer ref={footerRef} className={styles.footer + ` ${isHide ? styles.hide : ''}`} />
+  return [
+    footer,
+  ] as const;
+}
+
+function useSearchList() {
+  const [query, setQuery] = useState('');
+  const [isRateLimit, setIsRateLimit] = useState(false);
+  const { data, isFetching, error, isError, fetchNextPage } = useInfiniteQuery({
+    queryKey: ['repos', query],
+    queryFn: async ({ pageParam }) => {
+      return searchRepo(query, pageParam)
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => lastPage.page + 1,
+    enabled: !!query,
+  });
+
+  const errorObj = error as unknown as {
+    resumeTime: string;
+    isRateLimit: boolean;
+  };
+
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (isError) {
+      if (isError && errorObj?.isRateLimit) {
+        setIsRateLimit(errorObj?.isRateLimit);
+        timeout = setTimeout(() => {
+          setIsRateLimit(false);
+        }, (Number(errorObj?.resumeTime) - Date.now() / 1000) * 1000);
+      }
+    }
+
+    return () => clearTimeout(timeout);
+  }, [isError, error]);
+
+  const items = useMemo(() => {
+    if (!data) return [];
+
+    return data.pages.flatMap((it) => it.items);
+  }, [data]);
+
+  const search = useCallback(async (q: string) => {
+    setQuery(q);
+  }, []);
+
+  const nextPage = useCallback(() => {
+    if (isFetching) return;
+
+    fetchNextPage();
+  }, [isFetching, fetchNextPage]);
+
+  return [
+    {
+      items,
+      isFetching,
+      isError,
+      resumeTime: Number(errorObj?.resumeTime) || 0,
+      isRateLimit,
+    },
+    search,
+    nextPage,
+  ] as const;
+}
+
+function useCountdownError(resumeTime: number, isRateLimit: boolean, isError: boolean) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let id: NodeJS.Timeout;
+    if (isRateLimit) {
+      const left = Math.floor(resumeTime - Date.now() / 1000);
+      setCount(left);
+      id = setInterval(() => {
+        setCount(c => c - 1);
+      }, 1000);
+    }
+
+    return () => clearInterval(id);
+  }, [isRateLimit, setCount, resumeTime]);
+
+  let error = "";
+  if (isError) {
+    if (isRateLimit) {
+      error = "Wait " + count + " seconds for next request.";
+    } else {
+      error = "Fetch fail.";
+    }
+  }
+
+  return [error] as const;
 }
 
 export default function SearchPage(): JSX.Element {
@@ -69,9 +130,18 @@ export default function SearchPage(): JSX.Element {
     redirect('/');
   }
 
+  const [state, search, nextPage] = useSearchList();
+  const { items: list, isFetching, isError, resumeTime, isRateLimit } = state;
+
+  const [error] = useCountdownError(resumeTime, isRateLimit, isError);
+
+  const isHide = list.length === 0;
+  const [footer] = useInfiniteScroll(isFetching, nextPage, isHide);
+
   return (
     <div className={styles.container}>
-      <SearchContent list={data} isLoading={false} handleSearch={async () => { }} error='' isRateLimit={false} />
+      <SearchContent list={list} isLoading={isFetching} handleSearch={search} error={error} isRateLimit={isRateLimit} />
+      {footer}
     </div>
   );
 }

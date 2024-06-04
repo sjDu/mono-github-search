@@ -48,6 +48,7 @@
   align-items: center;
   justify-content: space-between;
   padding-right: 10px;
+  padding-bottom: 10px;
 
   @media (max-width: 500px) {
     width: calc(100vw - 90px);
