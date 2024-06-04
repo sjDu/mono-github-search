@@ -78,6 +78,13 @@ function getRepoStarMap(token: string) {
 
 
 export async function starRepo(token: string, repoFullName: string, star: boolean) {
+  // pretent API process time
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  // pretent API error
+  if (Math.random() > 0.8) {
+    throw new Error('Random Mock Error');
+  }
 
   const userStarMap = getRepoStarMap(token);
   if (star) {

@@ -20,7 +20,26 @@
     background-color: #f3f4f6;
     border-color: #d0d7de;
   }
+
+  &.loading {
+    opacity: 0.5;
+  }
+
+  &.error {
+    background-color: #f6f8fa;
+    border-color: #cb2431;
+    color: #cb2431;
+    animation: horizontal-shaking 0.15s;
+  }
 }
+
+@keyframes horizontal-shaking {
+  0% { transform: translateX(0) }
+  25% { transform: translateX(5px) }
+  50% { transform: translateX(-5px) }
+  75% { transform: translateX(5px) }
+  100% { transform: translateX(0) }
+ }
 
 .content {
   display: grid;

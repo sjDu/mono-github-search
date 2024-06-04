@@ -1,5 +1,4 @@
 "use client";
-import { useState, useCallback } from "react";
 import { Button } from "../button";
 import styles from "./starButton.module.css";
 
@@ -44,20 +43,17 @@ const FilledStartSvg = (props: any) => (
 type StarButtonProps = {
   className?: string;
   onClick?: () => void;
+  isLoading?: boolean;
+  isStarred: boolean;
+  isError?: boolean;
 };
 
-export const StarButton = ({ className, onClick }: StarButtonProps) => {
-  const [isStarred, setIsStarred] = useState(false);
-
-  const handleClick = useCallback(() => {
-    setIsStarred((prev) => !prev);
-    onClick?.();
-  }, []);
+export const StarButton = ({ className, onClick, isStarred, isLoading, isError }: StarButtonProps) => {
 
   return (
     <Button
-      className={styles.button + ' ' + className}
-      onClick={handleClick}
+      className={styles.button + ` ${isLoading ? styles.loading : ''} ${isError ? styles.error : ''} ` + ' ' + className}
+      onClick={onClick}
     >
       <span className={styles.content}>
         {isStarred ? <FilledStartSvg fill={'#656d76'} /> : <StartSvg />}

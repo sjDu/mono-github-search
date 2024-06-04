@@ -35,12 +35,13 @@ function useInfiniteScroll(isFetching: boolean, nextPage: () => void, isHide: bo
 }
 
 function useSearchList() {
+  const login = useAtomValue(loginAtom)
   const [query, setQuery] = useState('');
   const [isRateLimit, setIsRateLimit] = useState(false);
   const { data, isFetching, error, isError, fetchNextPage } = useInfiniteQuery({
     queryKey: ['repos', query],
     queryFn: async ({ pageParam }) => {
-      return searchRepo(query, pageParam)
+      return searchRepo(login.token, query, pageParam)
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => lastPage.page + 1,
