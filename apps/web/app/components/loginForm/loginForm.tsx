@@ -1,22 +1,13 @@
 "use client";
-import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSetAtom } from 'jotai'
+import { useState } from 'react';
 import { Button } from "@repo/ui/button";
 import { Input } from "@repo/ui/input";
-import { login } from "@repo/github-service";
 import styles from "./loginForm.module.css";
-import { loginAtom } from "../../atoms/atoms";
+import { useLogin } from './query';
 
 export default function LoginForm({ className }: { className?: string }) {
-  const setLogin = useSetAtom(loginAtom)
-  const router = useRouter()
   const [token, setToken] = useState('');
-  const handleLogin = useCallback(async () => {
-    const response = await login(token);
-    setLogin(() => response);
-    router.push('/search')
-  }, [token]);
+  const [handleLogin] = useLogin(token);
 
   return (<div className={styles.loginForm + ` ${className}`}>
     <Input className={styles.tokenInput}

@@ -1,12 +1,11 @@
 "use client";
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { redirect } from 'next/navigation'
 import { useAtomValue } from 'jotai'
-import { useInfiniteQuery } from '@tanstack/react-query'
-import { searchRepo } from "@repo/github-service";
 import { loginAtom } from "../atoms/atoms";
 import SearchContent from "../components/searchContent/searchContent";
 import styles from './page.module.css'
+import { useSearchList } from './query';
 
 function useInfiniteScroll(isFetching: boolean, nextPage: () => void, isHide: boolean) {
   const observerRef = useRef<IntersectionObserver>();
@@ -28,72 +27,10 @@ function useInfiniteScroll(isFetching: boolean, nextPage: () => void, isHide: bo
     };
   }, [nextPage, isFetching]);
 
+  // hide footer when no items
   const footer = <footer ref={footerRef} className={styles.footer + ` ${isHide ? styles.hide : ''}`} />
   return [
     footer,
-  ] as const;
-}
-
-function useSearchList() {
-  const login = useAtomValue(loginAtom)
-  const [query, setQuery] = useState('');
-  const [isRateLimit, setIsRateLimit] = useState(false);
-  const { data, isFetching, error, isError, fetchNextPage } = useInfiniteQuery({
-    queryKey: ['repos', query],
-    queryFn: async ({ pageParam }) => {
-      return searchRepo(login.token, query, pageParam)
-    },
-    initialPageParam: 1,
-    getNextPageParam: (lastPage) => lastPage.page + 1,
-    enabled: !!query,
-  });
-
-  const errorObj = error as unknown as {
-    resumeTime: string;
-    isRateLimit: boolean;
-  };
-
-
-  useEffect(() => {
-    let timeout: NodeJS.Timeout;
-    if (isError) {
-      if (isError && errorObj?.isRateLimit) {
-        setIsRateLimit(errorObj?.isRateLimit);
-        timeout = setTimeout(() => {
-          setIsRateLimit(false);
-        }, (Number(errorObj?.resumeTime) - Date.now() / 1000) * 1000);
-      }
-    }
-
-    return () => clearTimeout(timeout);
-  }, [isError, error]);
-
-  const items = useMemo(() => {
-    if (!data) return [];
-
-    return data.pages.flatMap((it) => it.items);
-  }, [data]);
-
-  const search = useCallback(async (q: string) => {
-    setQuery(q);
-  }, []);
-
-  const nextPage = useCallback(() => {
-    if (isFetching) return;
-
-    fetchNextPage();
-  }, [isFetching, fetchNextPage]);
-
-  return [
-    {
-      items,
-      isFetching,
-      isError,
-      resumeTime: Number(errorObj?.resumeTime) || 0,
-      isRateLimit,
-    },
-    search,
-    nextPage,
   ] as const;
 }
 

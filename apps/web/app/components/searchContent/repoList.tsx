@@ -1,13 +1,10 @@
 
 import { useState, useCallback } from 'react';
-import { useAtomValue } from 'jotai'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import styles from './repoList.module.css';
-import { starRepo } from "@repo/github-service";
 import { Avatar } from '@repo/ui/avatar';
 import { Loader } from '@repo/ui/loader';
 import { StarButton } from '@repo/ui/starButton';
-import { loginAtom } from "../../atoms/atoms";
+import { useStarRepo } from './query';
 
 type RepoItem = {
   id: number;
@@ -25,28 +22,6 @@ type RepoListProps = {
   list: RepoItem[];
   isLoading: boolean;
 };
-
-function useStarRepo(onSuccess: (data: { star: boolean }) => void) {
-  const login = useAtomValue(loginAtom)
-  const queryClient = useQueryClient()
-  const mutation = useMutation({
-    mutationFn: async ({ repoFullName, star }: { repoFullName: string, star: boolean }) => {
-      return starRepo(login.token, repoFullName, star);
-    },
-    onSuccess: (data) => {
-      onSuccess(data);
-      queryClient.invalidateQueries({ queryKey: ['repos'] })
-    },
-  })
-  const handleStar = useCallback((repoFullName: string, star: boolean) => {
-    mutation.mutate({ repoFullName, star })
-  }, [mutation])
-
-  const isPending = mutation.isPending;
-  const isError = mutation.isError;
-
-  return [isPending, isError, handleStar] as const;
-}
 
 function Repo(props: RepoItem) {
   const [isStarred, setIsStarred] = useState(props.star || false);
