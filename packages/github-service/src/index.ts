@@ -76,13 +76,14 @@ function getRepoStarMap(token: string) {
   return map;
 }
 
-
+let clickCount = 0;
 export async function starRepo(token: string, repoFullName: string, star: boolean) {
   // pretent API process time
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  // pretent API error
-  if (Math.random() > 0.8) {
+  // pretent API error every 5 times
+  clickCount = clickCount % 5 + 1;
+  if (clickCount % 5 === 0) {
     throw new Error('Random Mock Error');
   }
 
