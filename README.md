@@ -77,10 +77,13 @@ type starRepo = (token: string, repoFullName: string, star: boolean) => Promise<
 
 ## Github Search App
 This is a simple Github search app built with Next.js. The app has the following features:
+- Support on Mobile device (width 320px+ )
 ### Login Page
-Login with a random token (login will always be successful)
+- Login with a random token (login will always be successful)
 ### Search Page
 - Search Box to search for Github repositories
+  - Auto detect search: type your query in search box and wait 1 second will trigger the request.
+  - Waiting effect(dotted border) for Auto detect search
   - API Fail / Rate limit count down error message
 - List Responsitories
   - Infinite scroll to load more repositories
