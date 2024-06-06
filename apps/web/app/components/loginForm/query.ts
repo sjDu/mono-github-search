@@ -9,8 +9,16 @@ function useLogin(token: string) {
   const router = useRouter()
   const handleLogin = useCallback(async () => {
     const response = await login(token);
-    setLogin(() => response);
-    router.push('/search')
+    if (response.status === 'success') {
+      setLogin(() => {
+        return ({
+          token: response.data.token,
+          user: response.data.user,
+          status: response.status,
+        })
+      });
+      router.push('/search')
+    }
   }, [token]);
 
   return [handleLogin] as const;

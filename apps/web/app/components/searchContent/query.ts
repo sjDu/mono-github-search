@@ -9,7 +9,11 @@ function useStarRepo(onSuccess: (data: { star: boolean }) => void) {
   const queryClient = useQueryClient()
   const mutation = useMutation({
     mutationFn: async ({ repoFullName, star }: { repoFullName: string, star: boolean }) => {
-      return starRepo(login.token, repoFullName, star);
+      const response = await starRepo(login.token, repoFullName, star);
+      if (response.status === 'fail') {
+        throw new Error('API error');
+      }
+      return response.data;
     },
     onSuccess: (data) => {
       onSuccess(data);

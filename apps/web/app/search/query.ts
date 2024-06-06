@@ -11,7 +11,11 @@ function useSearchList() {
   const { data, isFetching, error, isError, fetchNextPage } = useInfiniteQuery({
     queryKey: ['repos', query],
     queryFn: async ({ pageParam }) => {
-      return searchRepo(login.token, query, pageParam)
+      const response = await searchRepo(login.token, query, pageParam)
+      if (response.status === 'fail') {
+        throw { ...response.error };
+      }
+      return response.data;
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => lastPage.page + 1,

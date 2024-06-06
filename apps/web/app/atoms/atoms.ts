@@ -6,7 +6,7 @@ export const loginAtom = atom<{
     name: string
     email: string
   }
-  status: 'success' | 'unauthorized'
+  status: 'success' | 'unauthorized' | 'fail'
 
 }>({
   token: '',

@@ -14,6 +14,15 @@ type SearchRepoResponse = {
   incomplete_results: boolean;
 };
 
+type ApiResponse<T, K = undefined> = {
+  status: 'success';
+  data: T;
+} | {
+  status: 'fail';
+  error: K;
+}
+
 export type {
   SearchRepoResponse,
+  ApiResponse,
 }

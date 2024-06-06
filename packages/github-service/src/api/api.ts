@@ -1,19 +1,41 @@
-import { SearchRepoResponse } from './types';
+import { SearchRepoResponse, ApiResponse } from './types';
 import { appendStar, getRepoStarMap } from './star';
 
-async function login(token: string) {
+type LoginData = {
+  token: string;
+  user: {
+    name: string;
+    email: string;
+  };
+};
+async function login(token: string): Promise<ApiResponse<LoginData>> {
   return await Promise.resolve({
-    token,
-    user: {
-      name: 'Tester Stark',
-      email: 'tester.tony.stark@starkindustry.com'
+    data: {
+      token,
+      user: {
+        name: 'Tester Stark',
+        email: 'tester.tony.stark@starkindustry.com'
+      },
     },
     status: 'success',
-  } as const);
+  });
 }
 
+type SearchRepoData = {
+  items: SearchRepoResponse['items'];
+  resumeTime: string | null;
+  total: number;
+  page: number;
+};
+
+type SearchRepoError = {
+  resumeTime: string | null;
+  isRateLimit: boolean;
+  error?: any;
+};
+
 // in practice, the `token` here should be pass in by server layer
-async function searchRepo(token: string, query: string, page = 1) {
+async function searchRepo(token: string, query: string, page = 1): Promise<ApiResponse<SearchRepoData, SearchRepoError>> {
   let url = "https://api.github.com/search/repositories?sort=stars&order=desc";
 
   if (query && query.length) {
@@ -29,30 +51,54 @@ async function searchRepo(token: string, query: string, page = 1) {
   const remaining = r.headers.get("X-RateLimit-Remaining");
   if (!r.ok) {
     const isRateLimit = remaining === "0";
-    throw { resumeTime, isRateLimit };
+    return {
+      status: 'fail',
+      error: {
+        resumeTime,
+        isRateLimit,
+      }
+    }
   }
   try {
     const result: SearchRepoResponse = await r.json();
     return {
-      items: result.items.map(it => appendStar(it, token)),
-      resumeTime,
-      total: result.total_count,
-      page
-    };
+      status: 'success',
+      data: {
+        items: result.items.map(it => appendStar(it, token)),
+        resumeTime,
+        total: result.total_count,
+        page
+      }
+    }
   } catch (error) {
-    throw { resumeTime, error, isRateLimit: false };
+    return {
+      status: 'fail',
+      error: {
+        resumeTime,
+        isRateLimit: false,
+        error,
+      }
+    }
   }
 }
 
+type StarRepoData = {
+  repoFullName: string;
+  star: boolean;
+};
+
 let clickCount = 0;
-async function starRepo(token: string, repoFullName: string, star: boolean) {
+async function starRepo(token: string, repoFullName: string, star: boolean): Promise<ApiResponse<StarRepoData>> {
   // pretent API process time
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   // pretent API error every 5 times
   clickCount = clickCount % 5 + 1;
   if (clickCount % 5 === 0) {
-    throw new Error('Random Mock Error');
+    return {
+      status: 'fail',
+      error: undefined,
+    }
   }
 
   const userStarMap = getRepoStarMap(token);
@@ -63,8 +109,10 @@ async function starRepo(token: string, repoFullName: string, star: boolean) {
   }
   return {
     status: 'success',
-    repoFullName,
-    star,
+    data: {
+      repoFullName,
+      star,
+    }
   }
 }
 
