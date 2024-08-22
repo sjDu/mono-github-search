@@ -3,6 +3,7 @@
 This is monorepo for a simple Github search app which is deployed on github page.
 
 github page: https://sjdu.github.io/mono-github-search/
+(You don't need a real token to login. Just type a random token.)
 
 It includes 3 main packages:
 - `web`: a [Next.js](https://nextjs.org/) app
